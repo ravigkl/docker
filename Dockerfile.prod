@@ -1,0 +1,32 @@
+#1 fetch the official nodejs image
+FROM node:13.12.0-alpine as build
+
+#2 set the working directory
+WORKDIR /app
+#step 3
+ENV PATH /app/node_modules/.bin:$PATH
+
+#4 install app dependencies
+COPY package.json ./
+#step 5
+COPY package-lock.json ./
+#step 6
+#RUN npm install --silent
+RUN npm ci --silent
+#step 7
+RUN npm install react-scripts@3.4.1 -g --silent
+#step 8
+COPY . ./
+#step 9
+RUN npm run build
+#CMD ["npm", "start"]
+#step 10
+FROM nginx:stable-alpine
+#step 11
+COPY --from=build /app/build/ /usr/share/nginx/html
+#in case react router is used
+COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+#step 12
+EXPOSE 80
+#step 13
+CMD ["nginx", "-g", "daemon off;"]
